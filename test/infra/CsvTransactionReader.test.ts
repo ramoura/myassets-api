@@ -1,5 +1,5 @@
-import Portfolio from "../src/domain/model/Portfolio";
-import CsvTransactionReader from "../src/infra/CsvTransactionReader";
+import Portfolio from "../../src/domain/entity/Portfolio";
+import CsvTransactionReader from "../../src/infra/CsvTransactionReader";
 const fs = require('fs');
 
 

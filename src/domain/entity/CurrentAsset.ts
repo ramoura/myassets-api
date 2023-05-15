@@ -1,5 +1,6 @@
 import {Asset} from "./Asset";
 import Quote from "./Quote";
+import Currency from "./Currency";
 
 export default class CurrentAsset {
 
@@ -9,8 +10,8 @@ export default class CurrentAsset {
         return this.currentQuote.price;
     }
 
-    getCurretTotal() {
-        return this.asset.getQuantity() * this.currentQuote.price
+    getCurretTotal(currency: Currency) {
+        return this.asset.getQuantity() * this.convertTo(currency)
     }
 
     getDailyVariation() {
@@ -19,4 +20,9 @@ export default class CurrentAsset {
             changePercent: this.currentQuote.dailyVariation.changePercent
         }
     }
+
+    private convertTo(currency: Currency) : number{
+        return currency.convertValue(this.asset.currency, this.currentQuote.price);
+    }
+
 }

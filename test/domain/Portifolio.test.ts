@@ -1,6 +1,6 @@
-import {Asset} from "../src/domain/model/Asset";
-import Portfolio from "../src/domain/model/Portfolio";
-import Transaction from "../src/domain/model/Transaction";
+import {Asset} from "../../src/domain/entity/Asset";
+import Portfolio from "../../src/domain/entity/Portfolio";
+import Transaction from "../../src/domain/entity/Transaction";
 
 
 test("should add a purchase transaction ", async () => {

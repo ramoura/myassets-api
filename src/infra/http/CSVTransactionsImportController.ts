@@ -12,7 +12,7 @@ export default class CSVTransactionsImportController {
     constructor(readonly httpServer: HttpServer, importAssetTransactions: ImportAssetTransactions) {
         httpServer.registerUpload("/import/csv", upload.single("csvFile"), async function(params: any, body: any) {
             const csvData = fs.readFileSync(body.path, 'utf8').toString();
-            await importAssetTransactions.execute(csvData)
+            await importAssetTransactions.execute("user", csvData)
 
             return null
         })

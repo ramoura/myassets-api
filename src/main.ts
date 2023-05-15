@@ -5,18 +5,20 @@ import ImportAssetTransactions from "./application/ImportAssetTransactions";
 import InMemory from "./infra/repository/InMemory";
 import GetCurrentPortfolioController from "./infra/http/GetCurrentPortfolioController";
 import GetCurrentPortfolio from "./application/GetCurrentPortfolio";
-import QuoteGateway from "./domain/QuoteGateway";
-import QuoteGatewayFinanceYahoo from "./infra/QuoteGatewayFinanceYahoo";
+import QuoteGateway from "./application/gateway/QuoteGateway";
+import QuoteGatewayFinanceYahoo from "./infra/gateway/QuoteGatewayFinanceYahoo";
+import CurrencyGatewayAdapterYahoo from "./infra/gateway/CurrencyGatewayAdapterYahoo";
+import PortfolioDatabaseRepository from "./infra/repository/PortfolioDatabaseRepository";
 
 
 const httpServer = new ExpressAdapter()
 
 const quoteGateway: QuoteGateway = new QuoteGatewayFinanceYahoo('https://query1.finance.yahoo.com/v10/finance/quoteSummary/')
 const csvTransactionReader = new CsvTransactionReader()
-let inMemory = new InMemory();
+let repository = new PortfolioDatabaseRepository();
 
-const importAssetTransactions = new ImportAssetTransactions(csvTransactionReader, inMemory);
-let getCurrentPortfolio = new GetCurrentPortfolio(inMemory, quoteGateway);
+const importAssetTransactions = new ImportAssetTransactions(csvTransactionReader, repository);
+let getCurrentPortfolio = new GetCurrentPortfolio(repository, quoteGateway, new CurrencyGatewayAdapterYahoo('https://query1.finance.yahoo.com/v10/finance/quoteSummary/'))
 
 new GetCurrentPortfolioController(httpServer, getCurrentPortfolio)
 new CSVTransactionsImportController(httpServer, importAssetTransactions)

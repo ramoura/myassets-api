@@ -1,22 +1,26 @@
-import Transaction from "../domain/model/Transaction";
-import TransactionReader from "../domain/TransactionReader";
-import PortfolioRepository from "../domain/PortfolioRepository";
+import Transaction from "../domain/entity/Transaction";
+import TransactionReader from "./reader/TransactionReader";
+import PortfolioRepository from "./repository/PortfolioRepository";
+import Portfolio from "../domain/entity/Portfolio";
 
 export default class ImportAssetTransactions {
 
     constructor(private readonly transactionReader: TransactionReader, readonly portfolioRepository: PortfolioRepository) {
 
     }
-    async execute(csvData: string): Promise<void> {
+
+    async execute(user: string, csvData: string): Promise<void> {
         const transactions: Transaction[] = await this.transactionReader.readTransactions(csvData);
-        let portfolio = await this.portfolioRepository.getPortfolio('user1');
+        let portfolio = await this.portfolioRepository.getPortfolio(user);
+        if (!portfolio) {
+            portfolio = new Portfolio([], user);
+        }
         transactions.forEach((transaction) => {
-            portfolio.addTransaction(transaction);
+            portfolio?.addTransaction(transaction);
         });
 
         await this.portfolioRepository.savePortfolio(portfolio);
 
-        console.log(transactions)
 
     }
 }

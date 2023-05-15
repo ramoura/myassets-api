@@ -3,10 +3,13 @@ import Transaction from "./Transaction";
 
 export default class Portfolio {
 
-    private assets: Asset[]
+    private readonly assets: Asset[]
 
-    constructor(assets: Asset[] = []) {
+    private user: string
+
+    constructor(assets: Asset[] = [], user: string = "newUser") {
         this.assets = assets;
+        this.user = user;
     }
 
 
@@ -22,8 +25,7 @@ export default class Portfolio {
         let asset = this.getAsset(transaction.symbol);
         if (asset) {
         } else {
-            //console.log("new asset: " + transaction.symbol)
-            asset = new Asset(transaction.symbol);
+            asset = Asset.of(transaction.symbol, transaction.exchange, transaction.currency);
             this.addAsset(asset);
         }
         asset.addTransaction(transaction);

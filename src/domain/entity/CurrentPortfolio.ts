@@ -1,6 +1,7 @@
 import Portfolio from "./Portfolio";
 import Quote, {QuoteFactory} from "./Quote";
 import CurrentAsset from "./CurrentAsset";
+import Currency from "./Currency";
 
 export default class CurrentPortfolio {
 
@@ -18,7 +19,7 @@ export default class CurrentPortfolio {
         });
     }
 
-    getTotal() {
-        return this.getAssets().reduce((total, currentAsset) => total + currentAsset.getCurretTotal(), 0);
+    getTotal(currency: Currency) {
+        return this.getAssets().reduce((total, currentAsset) => total + currentAsset.getCurretTotal(currency), 0);
     }
 }

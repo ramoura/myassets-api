@@ -1,11 +1,12 @@
-import PortfolioRepository from "../domain/PortfolioRepository";
-import QuoteGateway from "../domain/QuoteGateway";
-import Portfolio from "../domain/model/Portfolio";
-import Quote from "../domain/model/Quote";
-import {Asset} from "../domain/model/Asset";
-import CurrentPortfolio from "../domain/model/CurrentPortfolio";
+import PortfolioRepository from "./repository/PortfolioRepository";
+import QuoteGateway from "./gateway/QuoteGateway";
+import Portfolio from "../domain/entity/Portfolio";
+import Quote from "../domain/entity/Quote";
+import {Asset} from "../domain/entity/Asset";
+import CurrentPortfolio from "../domain/entity/CurrentPortfolio";
+import CurrencyGateway from "./gateway/CurrencyGateway";
 
-interface AssetOutput {
+export interface AssetOutput {
     symbol: string;
     quantity: number;
     averagePrice: number;
@@ -17,7 +18,7 @@ interface AssetOutput {
     }
 }
 
-interface PortfolioOutput {
+interface  PortfolioOutput {
     assets: AssetOutput[];
     total: number;
     dailyVariation: {
@@ -27,12 +28,23 @@ interface PortfolioOutput {
 }
 
 export default class GetCurrentPortfolio {
-    constructor(readonly portfolioRepository: PortfolioRepository, readonly quoteGateway: QuoteGateway) {
+    constructor(readonly portfolioRepository: PortfolioRepository, readonly quoteGateway: QuoteGateway, readonly currencyGateway: CurrencyGateway) {
     }
 
     async execute(user: string): Promise<PortfolioOutput> {
-        let portfolio: Portfolio = await this.portfolioRepository.getPortfolio(user);
-        const quotes: Quote[] = await this.quoteGateway.getQuotes(portfolio.getAssets().map((asset: Asset) => asset.symbol));
+        const currency = await this.currencyGateway.getCurrency();
+
+        const portfolio= await this.portfolioRepository.getPortfolio(user);
+        if (!portfolio) {
+            throw new Error("Portfolio not found");
+        }
+
+        const quotes: Quote[] = await this.quoteGateway.getQuotes(portfolio.getAssets().map((asset: Asset) => {
+            return {
+                code: asset.symbol,
+                exchange: asset.exchange
+            }
+        }));
 
         const portfolioMarketValue = CurrentPortfolio.createCurrentPortfolio(portfolio, quotes);
         let currentAssets = portfolioMarketValue.getAssets();
@@ -43,7 +55,7 @@ export default class GetCurrentPortfolio {
                 quantity: currentAsset.asset.getQuantity(),
                 averagePrice: currentAsset.asset.getAvgPrice(),
                 price: currentAsset.getPrice(),
-                total: currentAsset.getCurretTotal(),
+                total: currentAsset.getCurretTotal(currency),
                 dailyVariation: {
                     change: currentAsset.getDailyVariation().change,
                     changePercent: (currentAsset.getDailyVariation().changePercent * 100).toFixed(2)
@@ -52,12 +64,13 @@ export default class GetCurrentPortfolio {
         });
 
         let totalChangeVariation = currentAssets.reduce((total, currentAsset) => total + currentAsset.getDailyVariation().change, 0);
+        let totalChange = portfolioMarketValue.getTotal(currency);
         return {
             assets: assets,
-            total: portfolioMarketValue.getTotal(),
+            total: totalChange,
             dailyVariation: {
                 change: totalChangeVariation,
-                changePercent: (totalChangeVariation / portfolioMarketValue.getTotal() * 100).toFixed(2)
+                changePercent: (totalChangeVariation / totalChange * 100).toFixed(2)
             }
         }
 

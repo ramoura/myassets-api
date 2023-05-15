@@ -1,9 +1,8 @@
 import csv from "csv-parser";
-import fs from "fs";
 import {Readable} from 'stream'
-import Transaction from "../domain/model/Transaction";
+import Transaction from "../domain/entity/Transaction";
 import moment = require("moment");
-import TransactionReader from "../domain/TransactionReader";
+import TransactionReader from "../application/reader/TransactionReader";
 
 interface CsvTransaction {
     date: string;
@@ -45,7 +44,9 @@ export default class CsvTransactionReader implements TransactionReader {
             Number(data["Quantidade"].replace(",", ".")),
             Number(data["Preço unitário"].replace("R$", "").replace(".", "").replace(",", ".")),
             moment(data["Data operação"], "DD/MM/YYYY").toDate(),
-            this.convertType(data["Operação C/V"])
+            this.convertType(data["Operação C/V"]),
+            data["Exchange"],
+            data["Currency"]
         );
     }
 
